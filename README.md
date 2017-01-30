@@ -22,3 +22,10 @@ The todos app will allow people to login using their Github credentials and crea
 3. Then, run express with ```node app```.
 4. Visit the website on ```http://localhost:3000```.
 5. Relax.
+
+## References
+
+* https://vuejs.org/v2/guide/
+* http://docs.couchdb.org/en/2.0.0/contents.html
+* https://github.com/dscape/nano
+* http://github.com/cfsghost/passport-github
