@@ -1,0 +1,154 @@
+<!doctype html>
+
+<title>TODOS POC</title>
+
+<style>
+  [v-cloak] {
+    display: none;
+  }
+
+  body {
+    font-family: sans-serif;
+  }
+</style>
+
+<div>
+  <div id=user
+       v-cloak
+       v-if=user>
+    <div>
+      Hello, {{ user.username }}
+    </div>
+
+    <a href="/logout">Logout</a>
+  </div>
+
+  <div data-route=home
+       v-cloak
+       v-if="url === URLS.home">
+    <h1>{{ title }}</h1>
+
+    <div v-if=todos.length>
+      <ul>
+        <li v-for="t in todos">{{ t.doc.todo }} by {{ t.doc.user }}</li>
+      </ul>
+    </div>
+
+    <div v-else>
+      No Todos.
+    </div>
+
+    <a href=""
+       @click.prevent=showTodoForm
+       v-if=!addingTodo>Add Todo</a>
+
+    <div v-if=addingTodo>
+      <label>Todo:</label>
+
+      <input v-model=todoValue>
+
+      <button @click.prevent=addTodo
+              v-show=todoValue>Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/vue@2.1.10/dist/vue.js"></script>
+<script>
+  var URLS = {
+    home: '#home'
+  };
+
+  var state = {
+    addingTodo: false,
+    todos: [],
+    todoValue: '',
+    title: 'Current Todos',
+    url: '#home',
+    user: null,
+    URLS: URLS
+  };
+
+  var user = new Vue({
+    el: '#user',
+    data: state,
+    created: function() {
+      this.getUser();
+    },
+    methods: {
+      getUser: function() {
+        return fetch('/api/user', {
+          credentials: 'include'
+        })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(json) {
+          state.user = json.user;
+
+          return state.user;
+        });
+      }
+    }
+  });
+
+  var home = new Vue({
+    el: '[data-route="home"]',
+    data: state,
+    created: function() {
+      this.fetchTodos();
+    },
+    methods: {
+      addTodo: function() {
+        var self = this;
+
+        fetch('/api/todo',
+          {
+            method: 'post',
+            credentials: 'include',
+            headers: {
+              'Content-type': 'application/json'
+            },
+            body: JSON.stringify({
+              type: 'todo',
+              todo: state.todoValue,
+              user: state.user.emails[0].value
+            })
+          })
+          .then(function(response) {
+            state.addingTodo = false;
+
+            home.fetchTodos();
+          });
+      },
+      fetchTodos: function() {
+        fetch('/api/todos')
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(json) {
+            state.todos = json.rows;
+          });
+      },
+      showTodoForm: function() {
+        if (state.user) {
+          state.addingTodo = true;
+        } else {
+          user.getUser()
+            .then(function() {
+              if (!state.user) {
+                location.href = '/auth/github';
+              } else {
+                state.addingTodo = true;
+              }
+            });
+        }
+      }
+    },
+    watch: {
+      url: function(newURL) {
+        history.pushState(null, null, newURL);
+      }
+    }
+  });
+</script>

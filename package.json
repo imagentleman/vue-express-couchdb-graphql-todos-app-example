@@ -1,0 +1,17 @@
+{
+  "name": "challenges",
+  "version": "0.1.0",
+  "description": "challenges poc",
+  "main": "app.js",
+  "repository": {},
+  "author": "imagentleman",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.16.0",
+    "express": "^4.14.0",
+    "express-session": "^1.15.0",
+    "nano": "^6.2.0",
+    "passport": "^0.3.2",
+    "passport-github2": "^0.1.10"
+  }
+}
