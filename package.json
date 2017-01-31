@@ -1,7 +1,7 @@
 {
-  "name": "challenges",
+  "name": "todos",
   "version": "0.1.0",
-  "description": "challenges poc",
+  "description": "todos poc",
   "main": "app.js",
   "repository": {},
   "author": "imagentleman",
