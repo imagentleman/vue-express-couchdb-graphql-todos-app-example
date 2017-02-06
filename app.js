@@ -107,6 +107,57 @@ passport.use(new GitHubStrategy(
   }
 ));
 
+// Graphql setup
+
+var {
+  GraphQLList,
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLString,
+} = require('graphql');
+var graphqlHTTP = require('express-graphql');
+var fetch = require('node-fetch');
+var baseUrl = 'http://localhost:3000'
+
+function fetchByPath(relativeURL) {
+  return fetch(`${baseUrl}${relativeURL}`).then(res => res.json());
+}
+
+function fetchTodos() {
+  return fetchByPath('/api/todos').then(json => {
+    return json.rows;
+  });
+}
+
+var TodoType = new GraphQLObjectType({
+  name: 'Todo',
+  fields: () => ({
+    id: { type: GraphQLString },
+    todo: {
+      type: GraphQLString,
+      resolve: todo => todo.doc.todo
+    },
+    user: {
+      type: GraphQLString,
+      resolve: todo => todo.doc.user
+    }
+  })
+});
+
+var QueryType = new GraphQLObjectType({
+  name: 'Query',
+  fields: () => ({
+    todos: {
+      type: new GraphQLList(TodoType),
+      resolve: fetchTodos
+    }
+  })
+});
+
+var schema = new GraphQLSchema({
+  query: QueryType
+});
+
 // Node Express Server setup
 
 var express = require('express');
@@ -115,11 +166,26 @@ var session = require('express-session');
 
 var app = express();
 
+// Graphql setup
+
+app.use('/graphql', graphqlHTTP({
+  schema: schema,
+  graphiql: true,
+}));
+
+// Parse post requests setup
+
 app.use(bodyParser.urlencoded({
   extended: true
 }));
 app.use(bodyParser.json());
+
+// Static files setup
+
 app.use(express.static('public'));
+
+// Github session setup
+
 app.use(session({ secret: SESSION_SECRET, resave: false, saveUninitialized: false }));
 // Initialize Passport!  Also use passport.session() middleware, to support
 // persistent login sessions (recommended).
